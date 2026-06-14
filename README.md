@@ -15,26 +15,33 @@ A small [MCP](https://modelcontextprotocol.io) server (built with
 | `update_expense` | Edit an existing expense |
 | `delete_expense` | Delete an expense |
 
-## Configuration
+## Credentials
 
-The server reads two environment variables:
+Each user supplies **their own** Splitwise API key (and optional default group id).
+The server reads them per request, in this order:
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `SPLITWISE_API_KEY` | yes | Bearer token for the Splitwise API |
-| `SPLITWISE_GROUP_ID` | no | Default group id used when a tool call omits `group_id` |
+1. **HTTP request headers** (multi-user / hosted) — preferred:
+   | Header | Required | Purpose |
+   |--------|----------|---------|
+   | `X-Splitwise-Api-Key` | yes | The caller's Splitwise API key (Bearer token) |
+   | `X-Splitwise-Group-Id` | no | Default group id when a tool omits `group_id` |
+2. **Environment variables** (single-user / local fallback) — `SPLITWISE_API_KEY`,
+   `SPLITWISE_GROUP_ID`.
 
-Get the API key at [dev.splitwise.com](https://dev.splitwise.com) → **Your apps** →
+This means one hosted deployment can serve many people: each person plugs in their
+own key via their client config — no shared key, no per-user redeploy.
+
+Get an API key at [dev.splitwise.com](https://dev.splitwise.com) → **Your apps** →
 create an app → copy the **API key**. The group id is in the URL when you open a
 group on splitwise.com.
 
 ---
 
-## Deploy to FastMCP Cloud (hosted)
+## Deploy to FastMCP Cloud (hosted, multi-user)
 
-FastMCP Cloud runs the server remotely and gives you an HTTPS URL. **Secrets are
-NOT put in the Claude config** — they live in the FastMCP Cloud dashboard as
-environment variables. The Claude config only points at the URL.
+FastMCP Cloud runs the server remotely and gives you one HTTPS URL that many
+people can use — **each with their own key**, passed as a header. You (the owner)
+don't need to put any Splitwise secret in the dashboard.
 
 1. **Push this folder to a GitHub repo** (see "Git setup" below).
 2. Go to [fastmcp.cloud](https://fastmcp.cloud), sign in with GitHub, and
@@ -46,38 +53,45 @@ environment variables. The Claude config only points at the URL.
    ```
 
    (FastMCP Cloud installs dependencies from `pyproject.toml` automatically.)
-4. In the project's **Environment Variables / Secrets**, add:
+4. **Authentication:** so other people can connect, set the project's access to
+   **public / unauthenticated**. The real credential is each user's
+   `X-Splitwise-Api-Key` header, so the server doesn't need its own login gate.
+   (No `SPLITWISE_*` env vars needed in the dashboard for the multi-user case.)
+5. Deploy. You'll get a URL like `https://your-project.fastmcp.app/mcp`. Share it.
 
-   ```
-   SPLITWISE_API_KEY  = your_api_key_here
-   SPLITWISE_GROUP_ID = your_default_group_id   # optional
-   ```
-5. Deploy. You'll get a URL like `https://your-project.fastmcp.app/mcp`.
+### How each user adds the server to Claude
 
-### Add the hosted server to Claude
+Every user runs this with **their own** key and group id:
 
 **Claude Code (CLI):**
 
 ```bash
-claude mcp add --transport http splitwise https://your-project.fastmcp.app/mcp
+claude mcp add --transport http splitwise https://your-project.fastmcp.app/mcp \
+  --header "X-Splitwise-Api-Key: THEIR_API_KEY" \
+  --header "X-Splitwise-Group-Id: THEIR_GROUP_ID"
 ```
 
-**Claude Desktop / claude.ai:** Settings → **Connectors** → **Add custom
-connector** → paste the `https://your-project.fastmcp.app/mcp` URL. (If the
-project has authentication enabled, Claude will walk you through the login.)
-
-The remote-server JSON form (for clients that accept it) is just the URL — no
-secrets:
+**Other clients (JSON form):**
 
 ```json
 {
   "mcpServers": {
     "splitwise": {
-      "url": "https://your-project.fastmcp.app/mcp"
+      "url": "https://your-project.fastmcp.app/mcp",
+      "headers": {
+        "X-Splitwise-Api-Key": "THEIR_API_KEY",
+        "X-Splitwise-Group-Id": "THEIR_GROUP_ID"
+      }
     }
   }
 }
 ```
+
+> Note: header-based config works in clients that support custom MCP headers
+> (e.g. Claude Code). The Claude Desktop "Add custom connector" UI currently
+> only takes a URL (no custom headers), so Desktop users would need a client
+> that supports headers — or you'd move to OAuth. For most setups, Claude Code
+> is the way each user plugs in their key.
 
 ---
 

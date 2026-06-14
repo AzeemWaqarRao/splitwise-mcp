@@ -15,30 +15,46 @@ from typing import Any
 
 import httpx
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_headers
 
 BASE_URL = "https://secure.splitwise.com/api/v3.0"
 
 mcp = FastMCP("splitwise")
 
 
+def _headers() -> dict[str, str]:
+    """Headers of the current HTTP request (lowercased keys), or {} if none.
+
+    Returns {} when running over stdio / outside an HTTP request, in which case
+    callers fall back to environment variables.
+    """
+    try:
+        return get_http_headers()
+    except Exception:
+        return {}
+
+
 def _api_key() -> str:
-    key = os.environ.get("SPLITWISE_API_KEY")
+    """Per-user Splitwise API key from the request header, else the env default."""
+    key = _headers().get("x-splitwise-api-key") or os.environ.get("SPLITWISE_API_KEY")
     if not key:
         raise RuntimeError(
-            "SPLITWISE_API_KEY is not set. Add it to the MCP server's environment "
-            "(get it from dev.splitwise.com → Your apps)."
+            "No Splitwise API key. Send it in the 'X-Splitwise-Api-Key' header "
+            "(remote/multi-user) or set SPLITWISE_API_KEY (local). Get a key at "
+            "dev.splitwise.com → Your apps."
         )
     return key
 
 
 def _default_group_id() -> int | None:
-    raw = os.environ.get("SPLITWISE_GROUP_ID")
-    if raw is None or raw.strip() == "":
+    """Per-user default group id from the request header, else the env default."""
+    raw = _headers().get("x-splitwise-group-id") or os.environ.get("SPLITWISE_GROUP_ID")
+    if raw is None or str(raw).strip() == "":
         return None
     try:
         return int(raw)
     except ValueError:
-        raise RuntimeError(f"SPLITWISE_GROUP_ID is not a valid integer: {raw!r}")
+        raise RuntimeError(f"Splitwise group id is not a valid integer: {raw!r}")
 
 
 def _resolve_group_id(group_id: int | None) -> int:
