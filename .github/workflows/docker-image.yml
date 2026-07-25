@@ -1,5 +1,8 @@
 name: Docker Image CI
 
+env:
+  VERSION: $(date +%s)
+  
 on:
   push:
     branches: [ "main" ]
@@ -15,6 +18,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$(date +%s)
+      run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$VERSION
     - name: Push the docker image
-      run: docker push registry.azeemwaqar.com/splitwise-mcp:$(date +%s)
+      run: docker push registry.azeemwaqar.com/splitwise-mcp:$VERSION
