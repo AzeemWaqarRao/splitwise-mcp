@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4  
     
     - name: Version Check
-      run: echo "The version is $GITHUB_RUN_ID"
+      run: echo "The version is $CONTAINER_NAME"
       
     - name: Build the Docker Image
       run: docker build . --file Dockerfile --tag $IMAGE_NAME
@@ -49,5 +49,5 @@ jobs:
         EOF
    
     - name: Deploy Docker Image
-      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME && docker run -d -p 8000:8000 $IMAGE_NAME $CONTAINER_NAME'
+      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true && docker run -d -p 8000:8000 $IMAGE_NAME $CONTAINER_NAME || true'
       
