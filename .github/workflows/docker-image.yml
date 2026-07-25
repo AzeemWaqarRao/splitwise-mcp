@@ -22,8 +22,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4  
     
-    - name: Version Check
-      run: echo "The version is $IMAGE_NAME"
+    - name: Starter
+      run: echo "Deploying &IMAGE_NAME to desitination."
       
     - name: Build the Docker Image
       run: docker build . --file Dockerfile --tag $IMAGE_NAME
