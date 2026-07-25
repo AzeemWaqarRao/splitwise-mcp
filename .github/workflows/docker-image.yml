@@ -22,3 +22,16 @@ jobs:
       run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$GITHUB_RUN_ID
     - name: Push the Docker Image
       run: docker push registry.azeemwaqar.com/splitwise-mcp:$GITHUB_RUN_ID
+    - name: Configure SSH
+      env:
+       SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$SSH_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+    - name: Deploy Docker Image
+       env:
+        SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
+        SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
+       run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker ps'
+		
