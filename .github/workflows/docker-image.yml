@@ -6,7 +6,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
-
+env:
+  SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+  SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
+  SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
+  IMAGE_NAME: registry.azeemwaqar.com/splitwise-mcp:${{ github.run_id }}
+  CONTAINER_NAME: splitwise-mcp
 
 jobs:
 
@@ -16,11 +21,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4  
-    - name: Configure SSH
-      env:
-       SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-       SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
+    
+    - name: Version Check
+      run: echo "The version is $GITHUB_RUN_ID"
+      
+    - name: Build the Docker Image
+      run: docker build . --file Dockerfile --tag $IMAGE_NAME
+ 
+    - name: Push the Docker Image
+      run: docker push $IMAGE_NAME
 
+    - name: Configure SSH
       run: |
         mkdir -p ~/.ssh/
         echo "$SSH_KEY" > ~/.ssh/deploy_key
@@ -36,14 +47,7 @@ jobs:
           ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
           StrictHostKeyChecking no
         EOF
+   
     - name: Deploy Docker Image
-      env:
-        SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
-        SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
-      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker ps'
-    - name: Version Check
-      run: echo "The version is $GITHUB_RUN_ID"
-    - name: Build the Docker Image
-      run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$GITHUB_RUN_ID
-    - name: Push the Docker Image
-      run: docker push registry.azeemwaqar.com/splitwise-mcp:$GITHUB_RUN_ID
+      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker stop $CONTAINER_NAME && docker rm CONTAINER_NAME && docker run -d -p 8000:8000 $IMAGE_NAME $CONTAINER_NAME'
+      
