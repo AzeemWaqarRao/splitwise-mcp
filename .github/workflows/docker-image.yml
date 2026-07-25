@@ -6,8 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  VERSION: "$(date +%s)"
+
 
 jobs:
 
@@ -18,8 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4  
     - name: Version Check
-      run: echo "The version is $VERSION"
+      run: echo "The version is $GITHUB_RUN_ID"
     - name: Build the Docker Image
-      run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$VERSION
+      run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$GITHUB_RUN_ID
     - name: Push the Docker Image
-      run: docker push registry.azeemwaqar.com/splitwise-mcp:$VERSION
+      run: docker push registry.azeemwaqar.com/splitwise-mcp:$GITHUB_RUN_ID
