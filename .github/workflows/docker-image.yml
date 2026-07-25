@@ -34,4 +34,3 @@ jobs:
         SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
         SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
       run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker ps'
-		
