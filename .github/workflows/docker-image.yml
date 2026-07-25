@@ -53,5 +53,5 @@ jobs:
           ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL \
           "docker stop $CONTAINER_NAME || true && \
            docker rm $CONTAINER_NAME || true && \
-           docker rmi `docker image ls | egrep "splitwise-mcp"  | awk '{print $1}'` || true \
+           docker rmi `docker image ls | egrep "splitwise-mcp"  | awk '{print $1}'` || true  && \
            docker run -d -p 8000:8000 --name $CONTAINER_NAME $IMAGE_NAME"      
