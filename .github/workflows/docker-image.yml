@@ -30,8 +30,8 @@ jobs:
         echo "$SSH_KEY" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
     - name: Deploy Docker Image
-       env:
+      env:
         SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
         SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
-       run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker ps'
+      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker ps'
 		
