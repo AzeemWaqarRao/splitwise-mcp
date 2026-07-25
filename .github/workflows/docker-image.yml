@@ -49,5 +49,8 @@ jobs:
         EOF
    
     - name: Deploy Docker Image
-      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true && docker run -d -p 8000:8000 $IMAGE_NAME $CONTAINER_NAME || true'
-      
+      run: |
+          ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL \
+          "docker stop $CONTAINER_NAME || true && \
+           docker rm $CONTAINER_NAME || true && \
+           docker run -d -p 8000:8000 --name $CONTAINER_NAME $IMAGE_NAME"      
