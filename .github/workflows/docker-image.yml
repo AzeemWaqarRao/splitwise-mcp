@@ -1,13 +1,13 @@
 name: Docker Image CI
-
-env:
-  VERSION: $(date +%s)
   
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
+env:
+  VERSION: $(date +%s)
 
 jobs:
 
