@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from fastmcp.client import FastMCPTransport
 import httpx
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_headers
@@ -45,29 +46,6 @@ def _api_key() -> str:
         )
     return key
 
-
-def _default_group_id() -> int | None:
-    """Per-user default group id from the request header, else the env default."""
-    raw = _headers().get("x-splitwise-group-id") or os.environ.get("SPLITWISE_GROUP_ID")
-    if raw is None or str(raw).strip() == "":
-        return None
-    try:
-        return int(raw)
-    except ValueError:
-        raise RuntimeError(f"Splitwise group id is not a valid integer: {raw!r}")
-
-
-def _resolve_group_id(group_id: int | None) -> int:
-    """Return the explicit group_id, else the env default, else error."""
-    if group_id is not None:
-        return group_id
-    default = _default_group_id()
-    if default is not None:
-        return default
-    raise ValueError(
-        "No group_id provided and SPLITWISE_GROUP_ID is not set. "
-        "Pass group_id explicitly (use 0 for a non-group expense)."
-    )
 
 
 def _request(
@@ -146,8 +124,7 @@ def list_expenses(
     Date filters (dated_after/before, updated_after/before) accept ISO 8601
     strings, e.g. "2026-01-31T00:00:00Z".
     """
-    if group_id is None:
-        group_id = _default_group_id()  # may stay None → all groups
+ # may stay None → all groups
     params = {
         "group_id": group_id,
         "friend_id": friend_id,
@@ -159,6 +136,11 @@ def list_expenses(
         "offset": offset,
     }
     return _request("GET", "/get_expenses", params=params)
+
+@mcp.tool()
+def list_groups() -> dict[str, Any]:
+    """List all groups a user is a member of."""
+    return _request("GET", "/get_groups", params=None) 
 
 
 @mcp.tool()
@@ -205,13 +187,11 @@ def create_expense(
 
     if users:
         # Custom split: group_id is still useful context; don't send split_equally.
-        if group_id is None:
-            group_id = _default_group_id()
         data["group_id"] = group_id
         data.update(_flatten_users(users))
     else:
         # Equal split requires a concrete group_id.
-        data["group_id"] = _resolve_group_id(group_id)
+        data["group_id"] = group_id
         data["split_equally"] = True
 
     return _request("POST", "/create_expense", data=data)
@@ -256,4 +236,4 @@ def delete_expense(expense_id: int) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="http", host="0.0.0.0", port=8000)
