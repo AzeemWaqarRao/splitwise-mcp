@@ -23,6 +23,17 @@ jobs:
         mkdir -p ~/.ssh/
         echo "$SSH_KEY" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
+
+        # Install cloudflared on the runner
+        curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+        chmod +x /usr/local/bin/cloudflared
+
+        # Configure SSH to route through the tunnel
+        cat >> ~/.ssh/config << EOF
+        Host $SSH_HOST
+          ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          StrictHostKeyChecking no
+        EOF
     - name: Deploy Docker Image
       env:
         SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
