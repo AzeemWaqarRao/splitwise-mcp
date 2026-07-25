@@ -49,5 +49,5 @@ jobs:
         EOF
    
     - name: Deploy Docker Image
-      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker stop $CONTAINER_NAME && docker rm CONTAINER_NAME && docker run -d -p 8000:8000 $IMAGE_NAME $CONTAINER_NAME'
+      run: ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL 'docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME && docker run -d -p 8000:8000 $IMAGE_NAME $CONTAINER_NAME'
       
