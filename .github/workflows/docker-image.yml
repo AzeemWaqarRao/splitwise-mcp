@@ -10,8 +10,8 @@ env:
   SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
   SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
   SSH_USER: ${{ secrets.DEPLOY_USERNAME }}
-  IMAGE_NAME_BASE: registry.azeemwaqar.com/splitwise-mcp
-  IMAGE_NAME: $IMAGE_NAME_BASE:${{ github.run_id }}
+  IMAGE_NAME_BASE: "registry.azeemwaqar.com/splitwise-mcp"
+  IMAGE_NAME: "$IMAGE_NAME_BASE:${{ github.run_id }}"
   CONTAINER_NAME: "splitwise-mcp"
 
 jobs:
