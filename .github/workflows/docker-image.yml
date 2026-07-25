@@ -19,6 +19,8 @@ jobs:
     - name: Configure SSH
       env:
        SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+       SSH_URL: ${{ secrets.DEPLOY_SSH_URL }}
+
       run: |
         mkdir -p ~/.ssh/
         echo "$SSH_KEY" > ~/.ssh/deploy_key
@@ -30,7 +32,7 @@ jobs:
 
         # Configure SSH to route through the tunnel
         cat >> ~/.ssh/config << EOF
-        Host $SSH_HOST
+        Host $SSH_URL
           ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
           StrictHostKeyChecking no
         EOF
