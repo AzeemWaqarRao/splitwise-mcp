@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4  
     - name: Version Check
-      run: echo "the version is: $VERSION"    
+      run: echo "The version is $VERSION"
     - name: Build the Docker Image
       run: docker build . --file Dockerfile --tag registry.azeemwaqar.com/splitwise-mcp:$VERSION
     - name: Push the Docker Image
