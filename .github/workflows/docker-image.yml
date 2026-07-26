@@ -47,7 +47,13 @@ jobs:
           ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
           StrictHostKeyChecking no
         EOF
-   
+
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Deploy Docker Image
       run: |
         ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL \
