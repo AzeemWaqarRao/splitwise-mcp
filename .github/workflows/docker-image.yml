@@ -16,7 +16,6 @@ env:
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +29,13 @@ jobs:
  
     - name: Push the Docker Image
       run: docker push $IMAGE_NAME
+
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
 
     - name: Configure SSH
       run: |
@@ -48,12 +54,7 @@ jobs:
           StrictHostKeyChecking no
         EOF
 
-
-  deploy:
-
-    runs-on: ubuntu-latest
-
-    steps:
+        
     - name: Deploy Docker Image
       run: |
         ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL \
