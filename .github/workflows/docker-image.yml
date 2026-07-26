@@ -50,8 +50,10 @@ jobs:
    
     - name: Deploy Docker Image
       run: |
-          ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL \
-          "docker stop $CONTAINER_NAME || true && \
-           docker rm $CONTAINER_NAME || true && \
-           docker rmi $(docker images "registry.azeemwaqar.com/splitwise-mcp" --format "{{.Repository}}:{{.Tag}}") || true  && \
-           docker run -d -p 8000:8000 --name $CONTAINER_NAME $IMAGE_NAME"      
+        ssh -i ~/.ssh/deploy_key $SSH_USER@$SSH_URL \
+          "CONTAINER_NAME='$CONTAINER_NAME' IMAGE_NAME='$IMAGE_NAME' bash -s" << 'EOF'
+        docker stop $CONTAINER_NAME || true
+        docker rm $CONTAINER_NAME || true
+        docker rmi $(docker images "registry.azeemwaqar.com/splitwise-mcp" --format "{{.Repository}}:{{.Tag}}") || true
+        docker run -d -p 8000:8000 --name $CONTAINER_NAME --restart=always $IMAGE_NAME
+        EOF
