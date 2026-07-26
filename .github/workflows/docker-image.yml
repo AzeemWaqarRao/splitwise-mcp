@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4  
     
     - name: Starter
-      run: echo "Deploying &IMAGE_NAME to desitination."
+      run: echo "Deploying $IMAGE_NAME to desitination."
       
     - name: Build the Docker Image
       run: docker build . --file Dockerfile --tag $IMAGE_NAME
