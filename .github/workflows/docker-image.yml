@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Homelab deployment via Docker
   
 on:
   push:
